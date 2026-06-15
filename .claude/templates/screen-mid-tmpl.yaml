@@ -1,0 +1,389 @@
+template:
+  id: screen-mid
+  name: Screen Definition Template (mid-fi)
+  version: 1.0
+
+  # This is a reference template (not executable)
+  usage: reference
+  used_by:
+    - .claude/skills/product-ux-wireframes/SKILL.md
+
+  description: |
+    Structure specification for a per-screen definition document at MID fidelity.
+    Generated PER SCREEN within a surface during product-ux-wireframes.
+
+    Mid-fi extends the low-fi screen template with:
+    - Real microcopy for every block (no "Pendiente")
+    - Block variants (button: primary/secondary/disabled; input: default/focused/error)
+    - Icons assigned to blocks (by name, mapped to Unicode in renders)
+    - Real error/success/loading messages per state
+    - Annotations describing block-level behavior
+    - Heading hierarchy (h1/h2/h3)
+    - Surface-level visual style (accent color, grid baseline) declared in
+      product-overview or in the first screen's frontmatter
+
+    The .md is the SOURCE OF TRUTH and must contain everything needed to regenerate
+    the wireframe. Coordinates and Excalidraw IDs are NOT stored — they are
+    derived deterministically from the structure declared here.
+
+    NN/G three-dimension fidelity model: at mid-fi, we elevate visuals AND content
+    while keeping interactivity low (static frames + transition arrows).
+
+    CRITICAL RULES:
+    - Every block MUST have a real `Texto/label` (no placeholders, no "Pendiente").
+    - Every interactive block (button, link) MUST declare its variant.
+    - Every input MUST declare its state in each applicable Estado section.
+    - "Decisiones y descartes" remains obligatory.
+    - Block names match exactly between Estructura (table) and Contenido (sections).
+    - State messages must be the actual user-facing text (e.g., "Email inválido. Probá de nuevo.").
+    - Language MUST match the language of the source UX docs.
+
+# Output specification
+output:
+  path: docs/ux/surfaces/{{surface-name}}/screens/{{screen-name}}.md
+  format: markdown
+  frontmatter:
+    - name: string                  # screen short name (kebab-case, matches filename)
+    - surface: string               # surface name (matches parent folder)
+    - route: string                 # URL route or path identifier (e.g. "/armar")
+    - device: string                # "mobile" | "desktop" | "tablet"
+    - audiences: list               # list of audience names (single or co-primary)
+    - accent_color: string          # hex color for the surface (only declared once per surface; subsequent screens may omit)
+    - fidelity:                     # NN/G three dimensions
+        visuals: string             # at mid-fi: "mid"
+        content: string             # at mid-fi: "mid"
+        interactivity: string       # typically still "low" at mid-fi (static frames)
+    - version: string               # "1.0"
+    - date: date
+
+# Content sections
+sections:
+
+  - id: identidad
+    title: "Identidad"
+    instruction: |
+      Required. Captures the screen's identity.
+    fields:
+      - name: "Audiencia primaria"
+        format: "Bullet list with audience name + link to research-context. If co-primary, list both."
+      - name: "JTBD / Propósito"
+        format: "1-2 sentences describing what the user accomplishes."
+      - name: "Dispositivo principal"
+        format: "mobile / desktop / tablet."
+
+  - id: entrada-salida
+    title: "Entrada y salida"
+    instruction: |
+      Required. Document where users come from and go to.
+    fields:
+      - name: "Entradas"
+        format: "List of source screens with the trigger."
+      - name: "Salidas user-driven"
+        format: "List of destinations triggered by user action."
+      - name: "Salidas automáticas"
+        format: "List of destinations triggered automatically."
+
+  - id: estructura
+    title: "Estructura"
+    instruction: |
+      Inventory of internal blocks. At mid-fi, the table includes a `variant` column
+      for blocks that support variants (button, input, alert, heading, paragraph).
+
+      Block-level visibility per state: use `Visibilidad` column to declare restrictions.
+      - `visible_only_in_states`: list of states where the block renders (hidden in all others)
+      - `hidden_in_states`: list of states where the block is NOT rendered
+      - `state_overrides`: field overrides per state (variant, content, icon, etc.)
+
+      DO NOT split a logical screen into two JSON entries to work around visibility.
+      Instead, declare these fields on the block and the script handles filtering.
+    fields:
+      - name: "Bloques"
+        format: |
+          Markdown table with these columns (use "—" when not applicable):
+          | # | Nombre | Tipo | Variant/Level/State | Categoría | Visibilidad | Propósito |
+          |---|--------|------|---------------------|-----------|-------------|-----------|
+          | 1 | header | header | — | layout | todos los estados | Identidad + nav |
+          | 2 | Hero heading | heading | h1 | content | — | Comunicar producto |
+          | 3 | CTA primario | button | primary | input | state_overrides: loading→disabled | Disparador modo solo |
+          | 4 | Alerta error | alert | error | feedback | visible_only_in_states: error de validación | Mensaje de error |
+
+  - id: contenido
+    title: "Contenido"
+    instruction: |
+      Real microcopy for EVERY block. NO placeholders, NO "Pendiente". This is what
+      will appear in the wireframe rendered.
+
+      For each block listed in Estructura, write a `### {Nombre}` subsection with:
+      - **Texto/label**: the actual text rendered
+      - **Icono**: icon name (search, check, arrow-right, menu, etc.) when applicable
+      - **Asset**: image description with aspect ratio when applicable
+      - **Annotation**: inline behavior note (when needed)
+
+      Block names MUST match the Estructura table exactly.
+    fields:
+      - name: "Por bloque"
+        format: |
+          ### {Nombre del bloque}
+          - Texto/label: {real text}
+          - Icono: {icon-name | nada}
+          - Asset: {description + aspect ratio | nada}
+          - Annotation: {behavior note | nada}
+
+  - id: estados
+    title: "Estados"
+    instruction: |
+      Applicable states from the 8 fixed UI states.
+      At mid-fi, each applicable state declares:
+      - Real user-facing message (no "Pendiente")
+      - Which blocks change and HOW (variant, state, content)
+
+      The 8 fixed states:
+      1. default — happy path
+      2. empty — no data yet
+      3. loading — fetching
+      4. error de validación — user input invalid
+      5. error de sistema / sin conexión — network/server failure
+      6. success — confirmation after action
+      7. not found — resource doesn't exist
+      8. estado terminal / readonly — locked, immutable
+
+      Sub-states (e.g., "modal abierto", "dropdown open") can be declared as an
+      additional state with `parent_state: default` field.
+    fields:
+      - name: "Por estado aplicable"
+        format: |
+          ### {Nombre del estado}
+          - Aplica: {Sí/No - justificación si NO}
+          - Mensaje: {real user-facing message}
+          - Cambios:
+            - {Bloque X}: variant=disabled / state=error / content="…" (state_override)
+            - {Bloque Y}: oculto en este estado (hidden_in_states)
+            - {Bloque Z}: solo visible en este estado (visible_only_in_states)
+
+  - id: interacciones
+    title: "Interacciones"
+    instruction: |
+      Block-level events at mid-fi. Begin to populate (was empty at low-fi).
+    fields:
+      - name: "Eventos"
+        format: |
+          Per block: click/hover/submit/focus events with their effect.
+          Format: `{bloque} · {evento} → {efecto}`
+          Example: `CTA primario · on click → navega a /armar`
+      - name: "Validaciones"
+        format: |
+          Input validation rules + error messages.
+          Format: `{input} · {regla} → mensaje "{texto}"`
+      - name: "Feedback"
+        format: |
+          Brief description of feedback after actions (toast, alert, redirect).
+          (Animations are high-fi — only describe destinations here.)
+
+  - id: specs-visuales
+    title: "Specs visuales"
+    instruction: |
+      Empty at mid-fi. Filled at high-fi.
+    fields:
+      - name: "Pendiente"
+        format: "Pendiente — high-fi."
+
+  - id: accesibilidad
+    title: "Accesibilidad"
+    instruction: |
+      Begin populating at mid-fi.
+    fields:
+      - name: "Contraste"
+        format: "Note any contrast considerations (e.g., accent over white must be ≥4.5:1)."
+      - name: "Orden de foco"
+        format: "Logical tab order across interactive blocks."
+      - name: "ARIA / labels"
+        format: "Screen-reader labels for non-text-content blocks (icons, images)."
+      - name: "Keyboard"
+        format: "Keyboard shortcuts or focus traps if relevant."
+
+  - id: decisiones
+    title: "Decisiones y descartes"
+    instruction: |
+      Required, transversal. Captures the WHY of layout/structure choices.
+    fields:
+      - name: "Decisiones tomadas"
+        format: "- {Decisión}: {motivo}"
+      - name: "Alternativas descartadas"
+        format: "- {Alternativa}: {por qué se descartó}"
+      - name: "Preguntas abiertas"
+        format: "List open questions."
+
+# Format example (Spanish, since generated docs are in Spanish)
+format:
+  example: |
+    ---
+    name: home
+    surface: web-11
+    route: /
+    device: mobile
+    audiences:
+      - fan-casual-share
+      - fan-grupo-draft
+    accent_color: "#2563eb"
+    fidelity:
+      visuals: mid
+      content: mid
+      interactivity: low
+    version: 1.0
+    date: 2026-05-08
+    ---
+
+    # Pantalla: Home
+
+    ## Identidad
+
+    - **Audiencia primaria (co-primary):**
+      - [fan-casual-share](../../../audiences/fan-casual-share/research-context.md) — Aterriza por link, busca CTA principal.
+      - [fan-grupo-draft](../../../audiences/fan-grupo-draft/research-context.md) — Crea o se suma a sala de draft.
+    - **JTBD:** El usuario decide entre armar su 11, crear sala, ingresar código manual, o ver feed.
+    - **Dispositivo:** mobile
+
+    ## Entrada y salida
+
+    **Entradas:**
+    - Desde fuera (link compartido, escritura manual)
+    - Desde Resultados post-draft · click "Volver al home"
+
+    **Salidas user-driven:**
+    - A [Armado modo solo] · click CTA "Armá tu 11"
+    - A [Creación de sala draft] · click CTA "Crear sala draft"
+    - A [Página pública] · ingresar código válido + submit
+    - A [Equipo no encontrado] · ingresar código inválido + submit
+    - A [Feed público] · click "Ver feed"
+
+    **Salidas automáticas:**
+    - Ninguna.
+
+    ## Estructura
+
+    | # | Nombre | Tipo | Variant/Level/State | Categoría | Propósito |
+    |---|--------|------|---------------------|-----------|-----------|
+    | 1 | header | header | — | layout | Logo + toggle idioma |
+    | 2 | Hero heading | heading | h1 | content | Comunicar producto en 1-2s |
+    | 3 | Hero subtitle | paragraph | caption | content | Refuerzo del valor |
+    | 4 | Hero image | image | — | content | Card de ejemplo |
+    | 5 | CTA primario | button | primary | input | Disparador modo solo |
+    | 6 | CTA secundario | button | secondary | input | Disparador draft |
+    | 7 | Campo código | text-input | default | input | Input manual de código |
+    | 8 | Botón Ir | button | secondary | input | Submit del código |
+    | 9 | Link feed | link | — | navigation | Ir al feed público |
+    | 10 | footer | footer | — | layout | Atribución + legal |
+
+    ## Contenido
+
+    ### header
+    - Texto/label: "11"
+    - Icono: menu
+
+    ### Hero heading
+    - Texto/label: "Armá tu 11 ideal"
+
+    ### Hero subtitle
+    - Texto/label: "Sin registro · 5 minutos · listo para compartir"
+
+    ### Hero image
+    - Asset: 16:9 · "Card de ejemplo confirmada"
+
+    ### CTA primario
+    - Texto/label: "Armá tu 11"
+    - Icono: arrow-right
+
+    ### CTA secundario
+    - Texto/label: "Crear sala draft"
+
+    ### Campo código
+    - Texto/label: "Tenés un código? ingresalo"
+    - Icono: search
+    - Annotation: "valida 6 chars alfanuméricos al submit"
+
+    ### Botón Ir
+    - Texto/label: "Ir"
+
+    ### Link feed
+    - Texto/label: "Ver feed"
+    - Icono: arrow-right
+
+    ### footer
+    - Texto/label: "© 2026 Grava Digital · grava.digital"
+
+    ## Estados
+
+    ### default
+    - Aplica: Sí
+    - Mensaje: —
+    - Cambios: ninguno (estado base)
+
+    ### empty
+    - Aplica: No — la home no muestra datos del usuario.
+
+    ### loading
+    - Aplica: Sí
+    - Mensaje: "Cargando…"
+    - Cambios: hero, CTAs, campo código reemplazados por skeleton
+
+    ### error de validación
+    - Aplica: Sí
+    - Mensaje: "Código inválido. Probá de nuevo."
+    - Cambios:
+      - Campo código: state=error, error_msg="Código inválido"
+      - Botón Ir: variant=disabled
+
+    ### error de sistema / sin conexión
+    - Aplica: Sí
+    - Mensaje: "Hay un problema, reintentá"
+    - Cambios:
+      - Alerta de sistema (alert kind=error) agregada arriba del hero
+      - Botón Ir: variant=disabled
+
+    ### success
+    - Aplica: No — el éxito se manifiesta como navegación.
+
+    ### not found
+    - Aplica: No — no representa un recurso por ID.
+
+    ### estado terminal / readonly
+    - Aplica: No — la home nunca es readonly.
+
+    ## Interacciones
+
+    **Eventos:**
+    - CTA primario · on click → navega a `/armar`
+    - CTA secundario · on click → navega a `/draft/nuevo`
+    - Botón Ir · on click → submit del campo código
+    - Link feed · on click → navega a `/feed`
+
+    **Validaciones:**
+    - Campo código · si length≠6 o chars no permitidos → mensaje "Código inválido. Probá de nuevo."
+
+    **Feedback:**
+    - Submit válido → redirect a `/t/{codigo}`
+    - Submit inválido → estado `error de validación` inline (no redirect)
+
+    ## Specs visuales
+
+    Pendiente — high-fi.
+
+    ## Accesibilidad
+
+    - **Contraste:** accent #2563eb sobre blanco cumple AA (4.5:1) para texto ≥18pt.
+    - **Orden de foco:** Logo → Toggle idioma → CTA primario → CTA secundario → Campo código → Botón Ir → Link feed.
+    - **ARIA:** logo="Inicio", icon menu="Idioma", icon search="Buscar código".
+
+    ## Decisiones y descartes
+
+    **Decisiones tomadas:**
+    - Header-light con sólo logo y toggle: PRD pide superficie sin nav tradicional (G-04).
+    - Dos CTAs explícitos sobre el hero: dos audiencias primarias entran por caminos distintos.
+    - Campo código en home: PRD lo lista como entrada principal (C-12).
+
+    **Alternativas descartadas:**
+    - Onboarding/tutorial: descartado por PRD ("sin tutorial").
+    - Pantalla separada para ingreso de código: agrega click obligatorio.
+
+    **Preguntas abiertas:**
+    - ¿Hero muestra preview animado o sólo título + CTAs? (decisión visual, posterga a high-fi)

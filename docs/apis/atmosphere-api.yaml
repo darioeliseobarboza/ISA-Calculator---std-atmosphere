@@ -1,0 +1,326 @@
+openapi: 3.0.0
+info:
+  title: atmosphere-api
+  version: 1.0.0
+  description: |
+    API de cálculo de Atmósfera Estándar Internacional (ISA) — tropósfera (0–36.089 ft).
+
+    Dada una altitud geopotencial, calcula los parámetros atmosféricos por dos métodos
+    (analítico e interpolación) y los devuelve con su comparación (diferencia + error
+    relativo). Servicio stateless (sin base de datos).
+
+    Convenciones:
+    - Unidad canónica interna de cálculo: pies (ft). La entrada se normaliza a ft.
+    - Cada magnitud absoluta se devuelve en SI e imperial a la vez (objeto {si, imperial}).
+    - Los valores relativos son adimensionales (un único valor).
+    - La altitud se eco-devuelve en m y ft.
+    - Identificadores en inglés (tipos PascalCase, campos/enums camelCase); prosa en español.
+  contact:
+    name: Calculadora ISA
+
+externalDocs:
+  description: Arquitectura del producto
+  url: ../prd/architecture.md
+
+servers:
+  - url: http://localhost:8080
+    description: Desarrollo local (docker-compose.dev.yml)
+  - url: https://{apiHost}
+    description: Producción (detrás de ingress-network / nginx-proxy)
+    variables:
+      apiHost:
+        default: api.example.com
+        description: Dominio de la API (VIRTUAL_HOST en prod)
+
+tags:
+  - name: Health
+    description: Health check
+  - name: Calculation
+    description: Cálculo y comparación ISA
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Devuelve el estado del servicio.
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2026-06-12T16:00:00Z
+
+  /v1/calculate:
+    post:
+      summary: Calcular parámetros ISA y comparar métodos
+      description: |
+        Calcula los parámetros atmosféricos ISA en la altitud dada por método analítico
+        e interpolación, y devuelve ambos resultados más la comparación por magnitud.
+      operationId: calculate
+      tags:
+        - Calculation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculationRequest'
+      responses:
+        '200':
+          description: Cálculo exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculationResponse'
+        '400':
+          description: Entrada inválida (fuera de rango, no numérica o paso inválido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+
+    CalculationRequest:
+      type: object
+      required:
+        - geopotentialAltitude
+      properties:
+        geopotentialAltitude:
+          type: number
+          description: |
+            Altitud geopotencial en la unidad de `altitudeUnit`. Se normaliza a ft y se
+            valida en 0–36.089 ft (≈ 0–11.000 m).
+          example: 16404
+        altitudeUnit:
+          type: string
+          enum: [m, ft]
+          default: ft
+          description: Unidad de la altitud de entrada y del paso de la tabla.
+          example: ft
+        tableStep:
+          type: number
+          default: 1000
+          description: Paso de la grilla de interpolación, en `altitudeUnit`. >0 y ≤ 36.089 ft equiv.
+          example: 1000
+
+    CalculationResponse:
+      type: object
+      required:
+        - input
+        - results
+        - comparison
+        - table
+      properties:
+        input:
+          type: object
+          properties:
+            geopotentialAltitude:
+              $ref: '#/components/schemas/AltitudeValue'
+            altitudeUnit:
+              type: string
+              enum: [m, ft]
+              example: ft
+            tableStep:
+              type: number
+              example: 1000
+        results:
+          type: object
+          required:
+            - analytical
+            - interpolation
+          properties:
+            analytical:
+              $ref: '#/components/schemas/AtmosphericResult'
+            interpolation:
+              $ref: '#/components/schemas/AtmosphericResult'
+        comparison:
+          type: array
+          description: Una entrada por magnitud (11 en total).
+          items:
+            $ref: '#/components/schemas/MagnitudeDifference'
+        table:
+          $ref: '#/components/schemas/TableMeta'
+
+    AtmosphericResult:
+      type: object
+      description: |
+        Magnitudes absolutas en SI e imperial (objeto {si, imperial}); relativos
+        adimensionales (número único).
+      required:
+        - method
+        - temperature
+        - pressure
+        - density
+        - dynamicViscosity
+        - kinematicViscosity
+        - speedOfSound
+        - theta
+        - delta
+        - sigma
+        - speedOfSoundRatio
+        - viscosityRatio
+      properties:
+        method:
+          type: string
+          enum: [analytical, interpolation]
+        temperature:
+          $ref: '#/components/schemas/MagnitudeValue'
+        pressure:
+          $ref: '#/components/schemas/MagnitudeValue'
+        density:
+          $ref: '#/components/schemas/MagnitudeValue'
+        dynamicViscosity:
+          $ref: '#/components/schemas/MagnitudeValue'
+        kinematicViscosity:
+          $ref: '#/components/schemas/MagnitudeValue'
+        speedOfSound:
+          $ref: '#/components/schemas/MagnitudeValue'
+        theta:
+          type: number
+          description: T/T₀ (adimensional)
+          example: 0.8874
+        delta:
+          type: number
+          description: P/P₀ (adimensional)
+          example: 0.5331
+        sigma:
+          type: number
+          description: ρ/ρ₀ (adimensional)
+          example: 0.6009
+        speedOfSoundRatio:
+          type: number
+          description: a/a₀ = √θ (adimensional)
+          example: 0.9420
+        viscosityRatio:
+          type: number
+          description: μ/μ₀ (adimensional)
+          example: 0.9098
+
+    MagnitudeValue:
+      type: object
+      description: Valor absoluto expresado en SI e imperial.
+      required:
+        - si
+        - imperial
+      properties:
+        si:
+          type: number
+          description: Valor en SI (K, Pa, kg/m³, Pa·s, m²/s o m/s según la magnitud).
+          example: 255.65
+        imperial:
+          type: number
+          description: Valor en imperial (°R, lbf/ft², slug/ft³, slug/(ft·s), ft²/s o ft/s).
+          example: 460.17
+
+    AltitudeValue:
+      type: object
+      description: Altitud expresada en metros y pies.
+      required:
+        - m
+        - ft
+      properties:
+        m:
+          type: number
+          example: 5000.0
+        ft:
+          type: number
+          example: 16404
+
+    MagnitudeDifference:
+      type: object
+      description: |
+        Comparación de una magnitud entre métodos. Para magnitudes absolutas, los valores
+        y la diferencia son {si, imperial}; para relativas, son un número único.
+        `relativeErrorPct` es siempre adimensional (un ratio).
+      required:
+        - magnitude
+        - analyticalValue
+        - interpolationValue
+        - absoluteDifference
+        - relativeErrorPct
+      properties:
+        magnitude:
+          type: string
+          enum:
+            - temperature
+            - pressure
+            - density
+            - dynamicViscosity
+            - kinematicViscosity
+            - speedOfSound
+            - theta
+            - delta
+            - sigma
+            - speedOfSoundRatio
+            - viscosityRatio
+        analyticalValue:
+          oneOf:
+            - $ref: '#/components/schemas/MagnitudeValue'
+            - type: number
+        interpolationValue:
+          oneOf:
+            - $ref: '#/components/schemas/MagnitudeValue'
+            - type: number
+        absoluteDifference:
+          oneOf:
+            - $ref: '#/components/schemas/MagnitudeValue'
+            - type: number
+        relativeErrorPct:
+          type: number
+          description: (interpolation − analytical)/analytical · 100. Adimensional.
+          example: 0.037
+
+    TableMeta:
+      type: object
+      required:
+        - step
+        - minAltitude
+        - maxAltitude
+        - nodeCount
+      properties:
+        step:
+          type: number
+          description: Paso de la grilla, en ft.
+          example: 1000
+        minAltitude:
+          type: number
+          example: 0
+        maxAltitude:
+          type: number
+          example: 36089
+        nodeCount:
+          type: integer
+          example: 38
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum: [outOfRange, invalidInput, invalidStep]
+              example: outOfRange
+            message:
+              type: string
+              example: "geopotentialAltitude out of range (0–36089 ft ≈ 0–11000 m)"

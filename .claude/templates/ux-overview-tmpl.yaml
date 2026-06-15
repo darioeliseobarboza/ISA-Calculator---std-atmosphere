@@ -1,0 +1,167 @@
+template:
+  id: ux-overview
+  name: UX Overview Template
+  version: 1.0
+
+  # This is a reference template (not executable)
+  usage: reference
+  used_by:
+    - .claude/skills/product-ux-generate/SKILL.md
+    - .claude/skills/product-ux-agent/SKILL.md
+
+  description: |
+    Structure specification for the Product Overview document.
+    Generated as the FIRST artifact during /product-ux-generate.
+
+    This is the root document of the UX documentation set. It is the only place
+    where the product is seen as a whole. All audience and surface artifacts
+    reference back to this document.
+
+    The document captures:
+    - Product vision (problem, value proposition)
+    - Inventory of surfaces (1-line each)
+    - Inventory of audiences (1-line each)
+    - Audience ↔ surface matrix (who uses what and for what)
+    - Domain glossary (5-15 key terms)
+
+    CRITICAL RULES:
+    - Audiences are defined by distinct JTBDs, not by physical person
+    - Surface inventory must trace to PRD feature groups or capabilities
+    - Glossary terms come from the PRD (entities, key concepts), not invented
+    - Language MUST match the language of the PRD
+
+# Output specification
+output:
+  path: docs/ux/product-overview.md
+  format: markdown
+  frontmatter:
+    - document: string  # "Product Overview"
+    - version: string   # "1.0"
+    - date: date
+    - status: string    # "Draft - Punto de partida para discusión"
+
+# Section definitions
+sections:
+
+  - id: intro
+    title: Intro (no heading)
+    description: |
+      Opening blockquote that frames the document as the entry point of the UX docs.
+      Must appear immediately after the H1 title. No heading.
+    format: |
+      > Documento raíz del set de UX. Define audiencias, superficies y la relación
+      > entre ellas. Todos los demás artefactos UX referencian acá.
+
+  - id: product-vision
+    title: Visión del Producto
+    description: |
+      Brief description of what the product is and what problem it solves.
+      Maximum 2-3 paragraphs. Extracted from the PRD goals-and-context.md.
+    format: |
+      ## Visión del Producto
+
+      **Problema:** {{problema que resuelve, 1-2 líneas}}
+
+      **Propuesta de valor:** {{cómo lo resuelve y por qué importa, 1-2 líneas}}
+
+    example: |
+      ## Visión del Producto
+
+      **Problema:** Los operadores de depósito procesan pedidos bajo presión de turno y pierden tiempo cambiando entre sistemas inconexos.
+
+      **Propuesta de valor:** Una plataforma única que centraliza pedidos, inventario y comunicación con clientes, optimizada para uso en piso de depósito.
+
+  - id: surfaces-inventory
+    title: Inventario de Superficies
+    description: |
+      List of distinct surfaces that compose the product. Each surface is a
+      coherent area with its own structure and flows.
+
+      One line per surface. The detail lives in `surfaces/{name}/`.
+    format: |
+      ## Inventario de Superficies
+
+      - **{{surface-name}}** — {{1-line description: who uses it primarily, what for}}
+
+    example: |
+      ## Inventario de Superficies
+
+      - **app-operador** — App mobile/desktop usada por operadores en piso de depósito para procesar pedidos en tiempo real
+      - **dashboard-supervisor** — Dashboard web usado por supervisores para monitorear el turno y resolver bloqueos
+      - **panel-admin** — Panel administrativo para configurar usuarios, productos y reglas de negocio
+
+  - id: audiences-inventory
+    title: Inventario de Audiencias
+    description: |
+      List of distinct audiences. CRITICAL: audiences are separated by distinct
+      JTBDs, not by physical person. The same human can belong to multiple
+      audiences if they solve different jobs in each context.
+
+      One line per audience. The detail lives in `audiences/{name}/`.
+    format: |
+      ## Inventario de Audiencias
+
+      - **{{audience-name}}** — {{1-line description: role, primary context, key JTBD focus}}
+
+    example: |
+      ## Inventario de Audiencias
+
+      - **operador-turno** — Empleado de depósito procesando pedidos durante su turno; necesita velocidad y feedback claro
+      - **supervisor-turno** — Responsable de monitoreo del turno; necesita visibilidad agregada y poder actuar sobre excepciones
+      - **admin-sistema** — Configura el sistema (usuarios, productos, reglas); uso esporádico, sesiones largas
+
+  - id: audience-surface-matrix
+    title: Matriz Audiencia ↔ Superficie
+    description: |
+      Table mapping which audience uses which surface and for what purpose.
+
+      Cell content describes the PURPOSE of use, not just "yes/no". If an
+      audience does NOT use a surface, leave cell empty or with "—".
+    format: |
+      ## Matriz Audiencia ↔ Superficie
+
+      | Audiencia \\ Superficie | {{surface-1}} | {{surface-2}} | {{surface-N}} |
+      |-------------------------|---------------|---------------|---------------|
+      | {{audience-1}}          | {{purpose}}   | —             | {{purpose}}   |
+      | {{audience-2}}          | —             | {{purpose}}   | {{purpose}}   |
+
+    example: |
+      ## Matriz Audiencia ↔ Superficie
+
+      | Audiencia \\ Superficie | app-operador | dashboard-supervisor | panel-admin |
+      |-------------------------|--------------|----------------------|-------------|
+      | operador-turno          | Procesa pedidos durante el turno | — | — |
+      | supervisor-turno        | Consulta puntual del estado del piso | Monitoreo continuo del turno | — |
+      | admin-sistema           | — | — | Configuración inicial y mantenimiento |
+
+  - id: domain-glossary
+    title: Glosario de Dominio
+    description: |
+      5 to 15 key domain terms. Extracted from the PRD (entities, capabilities,
+      business rules) and from external references when relevant.
+
+      Each term has a 1-line definition in the language of the product domain.
+      Do NOT invent terms not present in the PRD.
+    format: |
+      ## Glosario de Dominio
+
+      - **{{término}}** — {{definición de 1 línea}}
+
+    example: |
+      ## Glosario de Dominio
+
+      - **Pedido** — Solicitud de productos hecha por un cliente, con líneas de ítems y estado de procesamiento
+      - **Turno** — Período de trabajo continuo de un equipo de operadores (típicamente 8 horas)
+      - **Bloqueo** — Estado de un pedido que no puede avanzar por falta de stock, error de validación o intervención de supervisor pendiente
+      - **Línea de pedido** — Ítem individual dentro de un pedido (producto + cantidad + precio)
+      - **Excepción** — Pedido que requiere intervención humana del supervisor para continuar
+
+  - id: closing
+    title: Closing (no heading)
+    description: |
+      Closing line pointing to the audience and surface artifacts.
+      Must be the last paragraph. No heading.
+    format: |
+      ---
+
+      **Próximos artefactos:** Cada audiencia y superficie listada arriba tiene su documentación detallada en `docs/ux/audiences/{nombre}/` y `docs/ux/surfaces/{nombre}/` respectivamente.

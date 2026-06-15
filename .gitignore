@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / entorno (no versionar; .env.dist sí)
+.env
+*.env
+!.env.dist
+!.env.example
+
+# Go (services/atmosphere-api)
+/bin/
+*.test
+*.out
+vendor/
+
+# Flutter / Dart (services/atmosphere-app)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/build/
+*.iml
+
+# Logs (slogx Dir, etc.)
+*.log
+logs/
+
+# Editores
+.idea/
+.vscode/

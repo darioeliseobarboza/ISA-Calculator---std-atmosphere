@@ -1,0 +1,337 @@
+template:
+  id: screen
+  name: Screen Definition Template
+  version: 1.0
+
+  # This is a reference template (not executable)
+  usage: reference
+  used_by:
+    - .claude/skills/product-ux-generate/SKILL.md
+    - .claude/skills/product-ux-wireframes/SKILL.md
+
+  description: |
+    Structure specification for a per-screen definition document.
+    Generated PER SCREEN within a surface during product-ux-generate or product-ux-wireframes.
+
+    The document is iterative across fidelity levels (low → mid → high).
+    Same file grows over time — sections present from creation, content fills
+    as fidelity increases. Following Nielsen Norman Group's three-dimension
+    fidelity model: visuals, content, interactivity can advance independently.
+
+    The document captures:
+    - Identity (audience, JTBD, device)
+    - Entry/exit transitions (where it comes from / goes to)
+    - Structure: blocks with stable names + types from the dictionary
+    - Content per block (placeholder in low → final in high)
+    - States (named in low → fully specified in high)
+    - Interactions (mid → high)
+    - Visual specs (high)
+    - Accessibility (mid → high)
+    - Decisions and discards (transversal — present from low)
+
+    CRITICAL RULES:
+    - One file per screen, NOT per state. States are documented within the file.
+    - Sections present from creation even if empty — prevents "implicit states" anti-pattern.
+    - "Decisiones y descartes" obligatory from low-fi — captures the WHY of layout choices.
+    - Blocks must use one of the 36 types from the dictionary in the skill SKILL.md.
+    - Audience must reference an existing audience name (research-context).
+    - States limited to the 8 fixed UI states. Only those that apply to the screen.
+    - Language MUST match the language of the source UX docs (typically Spanish).
+    - Iterative document: do NOT delete sections when growing fidelity, fill them.
+
+# Output specification
+output:
+  path: docs/ux/surfaces/{{surface-name}}/screens/{{screen-name}}.md
+  format: markdown
+  frontmatter:
+    - name: string                  # screen short name (kebab-case, matches filename)
+    - surface: string               # surface name (matches parent folder)
+    - route: string                 # URL route or path identifier (e.g. "/armar")
+    - device: string                # "mobile" | "desktop" | "tablet" — primary device
+    - audiences: list               # list of audience names (single or co-primary)
+    - fidelity:                     # NN/G three dimensions
+        visuals: string             # "low" | "mid" | "high"
+        content: string             # "low" | "mid" | "high"
+        interactivity: string       # "low" | "mid" | "high"
+    - version: string               # "1.0"
+    - date: date
+
+# Content sections in order
+sections:
+
+  - id: identidad
+    title: "Identidad [low-fi]"
+    instruction: |
+      Capture the screen's identity. Required from low-fi.
+    fields:
+      - name: "Audiencia primaria"
+        format: "Bullet list with audience name + link to research-context. If co-primary, list both with brief differentiation."
+      - name: "JTBD / Propósito"
+        format: "1-2 sentences describing what the user accomplishes on this screen."
+      - name: "Dispositivo principal"
+        format: "mobile / desktop / tablet — declare which device drives the layout."
+
+  - id: entrada-salida
+    title: "Entrada y salida [low-fi]"
+    instruction: |
+      Document where users come from and go to. Required from low-fi.
+    fields:
+      - name: "Entradas"
+        format: |
+          List of source screens with the trigger (user action or automatic).
+          Format: `- Desde [Pantalla X] · {trigger description}`
+      - name: "Salidas user-driven"
+        format: |
+          List of destinations triggered by user action.
+          Format: `- A [Pantalla Y] · {trigger description}`
+      - name: "Salidas automáticas"
+        format: |
+          List of destinations triggered automatically (post-action, timeout, redirect).
+          Format: `- A [Pantalla Z] · {trigger description}`
+
+  - id: estructura
+    title: "Estructura [low-fi → mid-fi]"
+    instruction: |
+      Inventory of internal blocks. Block names stay stable across fidelity levels.
+      Each block must use a `type` from the block dictionary documented in `screen-mid-tmpl.yaml` / the wireframe build scripts under `.claude/skills/product-ux-wireframes/scripts/`.
+    fields:
+      - name: "Bloques"
+        format: |
+          Markdown table:
+          | # | Nombre del bloque | Tipo | Categoría | Propósito |
+          |---|-------------------|------|-----------|-----------|
+          | 1 | {nombre} | {type} | {category} | {1-line purpose} |
+
+          Where:
+          - `type` is one of the 36 dictionary types (header, button, list, etc.)
+          - `category` is one of: layout, navigation, content, input, feedback
+
+  - id: contenido
+    title: "Contenido [low-fi placeholder → high-fi final]"
+    instruction: |
+      Per-block content. In low-fi: placeholder text. In mid-fi: real headings/microcopy.
+      In high-fi: final copy + assets. Section grows in detail across iterations.
+    fields:
+      - name: "Por bloque"
+        format: |
+          For each block listed in Estructura, document:
+          ### {Nombre del bloque}
+          - Texto/label: {placeholder o final según fidelidad}
+          - Microcopy: {pendiente en low-fi}
+          - Asset: {pendiente en low-fi, descripción en mid, link/path en high}
+
+  - id: estados
+    title: "Estados [low-fi nombres → high-fi specs]"
+    instruction: |
+      Applicable states from the 8 fixed UI states.
+      In low-fi: only state names + brief description.
+      In mid-fi: how each state changes blocks (which become disabled, hidden, replaced).
+      In high-fi: full visual specs per state.
+
+      **The 8 fixed states:**
+      1. default — happy path
+      2. empty — no data yet (first use)
+      3. loading — fetching data
+      4. error de validación — user input invalid
+      5. error de sistema / sin conexión — server/network failure
+      6. success — confirmation after action
+      7. not found — resource doesn't exist (auth/role/ownership context)
+      8. estado terminal / readonly — locked, immutable, post-completion
+
+      Note: "permiso/acceso denegado" applies ONLY when there is auth/role/ownership.
+      For purely public surfaces it does not apply.
+    fields:
+      - name: "Por estado aplicable"
+        format: |
+          ### {Nombre del estado}
+          - Aplica: {Sí/No - justificación si NO}
+          - Descripción: {qué cambia respecto al default}
+          - Bloques afectados: {lista de bloques que cambian, se ocultan, o se agregan}
+          - Specs visuales: {pendiente en low-fi}
+
+  - id: interacciones
+    title: "Interacciones [mid-fi → high-fi]"
+    instruction: |
+      Block-level events, validations, transitions. Empty in low-fi.
+    fields:
+      - name: "Eventos"
+        format: |
+          Per block: click/hover/submit/focus events with their effect.
+          Pendiente en low-fi.
+      - name: "Validaciones"
+        format: |
+          Input validation rules + error messages.
+          Pendiente en low-fi.
+      - name: "Feedback / animación"
+        format: |
+          Transitions, micro-animations, loading states.
+          Pendiente en low-fi.
+
+  - id: specs-visuales
+    title: "Specs visuales [high-fi]"
+    instruction: |
+      Visual specifications. Empty until mid/high-fi.
+    fields:
+      - name: "Tipografía"
+        format: "Font family, weights, sizes per block. Pendiente."
+      - name: "Color / tokens"
+        format: "Color tokens used per block. Pendiente."
+      - name: "Espaciado / grid"
+        format: "Padding, margins, grid system. Pendiente."
+
+  - id: accesibilidad
+    title: "Accesibilidad [mid-fi → high-fi]"
+    instruction: |
+      Accessibility specs. Empty in low-fi.
+    fields:
+      - name: "Contraste"
+        format: "Minimum contrast ratios per text block. Pendiente."
+      - name: "Orden de foco"
+        format: "Tab order across interactive blocks. Pendiente."
+      - name: "ARIA / labels"
+        format: "ARIA attributes, screen-reader labels. Pendiente."
+      - name: "Keyboard navigation"
+        format: "Keyboard shortcuts, focus traps. Pendiente."
+
+  - id: decisiones
+    title: "Decisiones y descartes [transversal]"
+    instruction: |
+      Document WHY this layout/structure was chosen. Required from low-fi.
+      Captures alternatives considered and why discarded.
+      Prevents "context lost in handoff" anti-pattern.
+    fields:
+      - name: "Decisiones tomadas"
+        format: |
+          Bullet list:
+          - {Decisión}: {motivo}
+      - name: "Alternativas descartadas"
+        format: |
+          Bullet list:
+          - {Alternativa}: {por qué se descartó}
+      - name: "Preguntas abiertas"
+        format: |
+          Bullet list of open questions for the team to resolve.
+          Empty section is valid — but heading must be present.
+
+# Format example (in Spanish, since generated docs are in Spanish)
+format:
+  example: |
+    ---
+    name: armar
+    surface: web-11
+    route: /armar
+    device: mobile
+    audiences:
+      - fan-casual-share
+    fidelity:
+      visuals: low
+      content: low
+      interactivity: low
+    version: 1.0
+    date: 2026-05-08
+    ---
+
+    # Pantalla: Armado modo solo
+
+    ## Identidad [low-fi]
+
+    - **Audiencia primaria:** [fan-casual-share](../../../audiences/fan-casual-share/research-context.md) — Arma su 11 en modo solo
+    - **JTBD / Propósito:** El usuario configura formación, presupuesto y selecciona los 11 jugadores que componen su equipo ideal. Confirma para generar la página pública.
+    - **Dispositivo principal:** mobile
+
+    ## Entrada y salida [low-fi]
+
+    **Entradas:**
+    - Desde [Home] · click en CTA "Armá tu 11"
+
+    **Salidas user-driven:**
+    - A [Home] · click en "< Volver"
+
+    **Salidas automáticas:**
+    - A [Página pública] · post-confirmación exitosa
+
+    ## Estructura [low-fi → mid-fi]
+
+    | # | Nombre del bloque | Tipo | Categoría | Propósito |
+    |---|-------------------|------|-----------|-----------|
+    | 1 | Header con volver | header | layout | Identidad + navegación atrás |
+    | 2 | Cancha + 11 puestos | image | content | Render visual del equipo |
+    | 3 | Selector formación | section | layout | Elegir 4-3-3, 4-4-2, etc. |
+    | 4 | Selector presupuesto | section | layout | Definir tope de gasto |
+    | 5 | Nombre del equipo | text-input | input | Bautizar opcionalmente el equipo |
+    | 6 | Contador de picks | heading | content | "Picks: X/11" |
+    | 7 | Confirmar equipo | button | input | CTA primaria que dispara confirmación |
+
+    ## Contenido [low-fi placeholder → high-fi final]
+
+    ### Header con volver
+    - Texto/label: "< Volver"
+
+    ### Cancha + 11 puestos
+    - Asset: render de cancha con 11 huecos seleccionables (placeholder en low-fi)
+
+    ### Selector formación
+    - Texto/label: "Formación · 4-3-3"
+
+    ### Confirmar equipo
+    - Texto/label: "Confirmar equipo"
+
+    ## Estados [low-fi nombres → high-fi specs]
+
+    ### default
+    - Aplica: Sí
+    - Descripción: usuario con algunos picks seleccionados (ej. 7/11)
+    - Bloques afectados: ninguno (estado base)
+
+    ### empty
+    - Aplica: Sí
+    - Descripción: usuario recién entró, sin picks
+    - Bloques afectados: contador "Picks: 0/11", botón confirmar disabled
+
+    ### loading
+    - Aplica: Sí
+    - Descripción: cargando catálogo de jugadores
+    - Bloques afectados: cancha y selectores reemplazados por skeleton
+
+    ### error de validación
+    - Aplica: Sí
+    - Descripción: presupuesto excedido al intentar confirmar
+    - Bloques afectados: alert visible, botón confirmar disabled
+
+    ### error de sistema / sin conexión
+    - Aplica: Sí
+    - Descripción: pérdida de conexión al confirmar
+    - Bloques afectados: alert "Sin conexión", confirmar disabled
+
+    ### success
+    - Aplica: No — el éxito se manifiesta como navegación automática a Página pública
+
+    ### not found
+    - Aplica: No — no hay recurso que pueda no existir en esta pantalla
+
+    ### estado terminal / readonly
+    - Aplica: No — la pantalla es siempre editable hasta confirmar
+
+    ## Interacciones [mid-fi → high-fi]
+
+    Pendiente.
+
+    ## Specs visuales [high-fi]
+
+    Pendiente.
+
+    ## Accesibilidad [mid-fi → high-fi]
+
+    Pendiente.
+
+    ## Decisiones y descartes [transversal]
+
+    **Decisiones tomadas:**
+    - Configuración inline (no pantalla previa): time-to-first-share es crítico
+    - Confirmación con sheet/modal sobre la pantalla: evita ceremonia innecesaria
+
+    **Alternativas descartadas:**
+    - Pantalla `/armar/config` previa: agrega click obligatorio, golpea G-04
+
+    **Preguntas abiertas:**
+    - ¿La confirmación debería tener animación de transición?

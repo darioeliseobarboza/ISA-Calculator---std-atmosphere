@@ -1,0 +1,15 @@
+service: atmosphere-api
+type: api
+language: golang
+
+conventions:
+  - http-server   # custom: stdlib net/http
+  - logging       # custom: github.com/darioeliseobarboza/slogx
+  - config        # custom: github.com/darioeliseobarboza/dotenv
+  - dockerfile
+  - testing
+  # _base is always active (implicit); error-handling auto-included by http-server
+
+modules:
+  - calculation
+  - units

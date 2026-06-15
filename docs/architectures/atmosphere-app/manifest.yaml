@@ -1,0 +1,18 @@
+service: atmosphere-app
+type: frontend
+language: flutter
+
+conventions:
+  - state-management      # Riverpod (catálogo)
+  - networking            # custom: package:http
+  - i18n                  # custom: intl
+  - models-serialization
+  - navigation
+  - theming
+  - testing
+  - env-config
+  # _base is always active (implicit); error-handling auto-included by networking
+
+modules:
+  - calculator
+  - formulas
