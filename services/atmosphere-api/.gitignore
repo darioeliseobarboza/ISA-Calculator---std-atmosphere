@@ -1,0 +1,10 @@
+# Local environment (the committed template is .env.dist)
+.env
+
+# Structured logs (slogx Dir default ./logs)
+/logs/
+
+# Build artifacts
+/bin/
+/out/
+*.test
