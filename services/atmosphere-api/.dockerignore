@@ -1,0 +1,27 @@
+# VCS
+.git
+.gitignore
+
+# Secrets / local env (the template .env.dist is also excluded from the image)
+.env
+.env.dist
+
+# Build artifacts
+/bin/
+/out/
+*.test
+
+# Logs (slogx Dir)
+logs/
+/logs/
+
+# Tests (not needed in the build context)
+**/*_test.go
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Docs
+README.md
