@@ -1,0 +1,21 @@
+# Analyzer config para atmosphere_app.
+# Sound null safety en todo el código. Los warnings no se ignoran.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # Inmutabilidad y constructores const (de _base).
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_locals: true
+    prefer_final_fields: true
+    # Imports ordenados (de _base).
+    directives_ordering: true
+    # Buenas prácticas async.
+    unawaited_futures: true
+    avoid_relative_lib_imports: true

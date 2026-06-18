@@ -1,0 +1,43 @@
+name: atmosphere_app
+description: "Frontend Flutter de atmosphere (Calculadora ISA) - targets Windows, Linux y Web."
+# Paquete privado: nunca publicar a pub.dev.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  # SDK Dart pineado (Flutter 3.44.x / Dart 3.12.x estable).
+  sdk: '>=3.12.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Estado + DI (ADR-001). NO usar get_it.
+  flutter_riverpod: ^2.6.1
+  # Cliente HTTP oficial envuelto por ApiClient (ADR-001, reemplaza dio por ADR-001).
+  http: ^1.2.2
+  # Routing por URL.
+  go_router: ^14.6.2
+  # Config de entorno tipada, fail-fast al arranque.
+  flutter_dotenv: ^5.2.1
+  # Formato / i18n (aplica plenamente en FG-2).
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Lints recomendados.
+  flutter_lints: ^6.0.0
+  # Mocks sin codegen para tests.
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  # .env se bundlea como asset para que flutter_dotenv lo cargue en runtime.
+  assets:
+    - .env
