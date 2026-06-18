@@ -1,0 +1,65 @@
+# docker/docker-compose.prod.yml — OVERRIDE PROD (producción)
+#
+# Se combina SIEMPRE con el base:
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
+#
+# Contiene SOLO las diferencias de prod respecto al base (ADR-004):
+#   - `image:` del registry oficial (tags versionados, parametrizables)
+#   - conexión a la red EXTERNA `ingress-network` (NO se expone `ports` al host)
+#   - vars del proxy (VIRTUAL_HOST / VIRTUAL_PORT / LETSENCRYPT_HOST) por servicio
+#   - valores de env de producción
+#
+# Prerequisitos de host (ver docker/README.md):
+#   - La red externa `ingress-network` ya debe existir
+#     (`docker network create ingress-network`) con nginx-proxy + acme-companion.
+#   - Las imágenes ya deben estar publicadas en el registry. En particular la
+#     imagen de `atmosphere-web` debe haberse construido con el API_BASE_URL
+#     PRODUCTIVO (build-time): el compose de prod NO puede inyectarlo en runtime.
+#
+# Variables de entorno esperadas al renderizar/levantar (con defaults de ejemplo):
+#   API_IMAGE, WEB_IMAGE        — referencia completa de imagen:tag en el registry
+#   API_DOMAIN, WEB_DOMAIN      — dominios públicos enrutados por el proxy
+#   API_CORS_ORIGINS            — orígenes permitidos por CORS (no vacío; fail-fast)
+
+services:
+  # --- atmosphere-api ---------------------------------------------------------
+  atmosphere-api:
+    # Imagen versionada del registry (NO build en prod).
+    image: ${API_IMAGE:-registry.example.com/atmosphere-api:latest}
+    environment:
+      ENV: production
+      HTTP_ADDR: ":8080"
+      # Obligatorio y NO vacío en producción: el binario hace fail-fast si
+      # CORS_ALLOWED_ORIGINS está vacío con ENV=production
+      # (config: CORS_ALLOWED_ORIGINS is required in production).
+      CORS_ALLOWED_ORIGINS: ${API_CORS_ORIGINS:-https://${WEB_DOMAIN:-app.example.com}}
+      # Descubrimiento por nginx-proxy + acme-companion. VIRTUAL_PORT apunta al
+      # puerto INTERNO del contenedor API (8080). LETSENCRYPT_HOST = VIRTUAL_HOST.
+      VIRTUAL_HOST: ${API_DOMAIN:-api.example.com}
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${API_DOMAIN:-api.example.com}
+    # Sin `ports`: el tráfico entra exclusivamente por el proxy en ingress-network.
+    # `!override` REEMPLAZA la lista de redes heredada del base (la red local
+    # `app`): en prod los servicios viven SOLO en `ingress-network` externa.
+    networks: !override
+      - ingress-network
+
+  # --- atmosphere-web ---------------------------------------------------------
+  atmosphere-web:
+    # Imagen versionada del registry, construida con el API_BASE_URL productivo
+    # horneado en build-time (la web NO recibe API_BASE_URL por env de runtime).
+    image: ${WEB_IMAGE:-registry.example.com/atmosphere-web:latest}
+    environment:
+      # VIRTUAL_PORT apunta al puerto INTERNO de nginx (80). LETSENCRYPT_HOST =
+      # VIRTUAL_HOST.
+      VIRTUAL_HOST: ${WEB_DOMAIN:-app.example.com}
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: ${WEB_DOMAIN:-app.example.com}
+    networks: !override
+      - ingress-network
+
+# Red EXTERNA preexistente en el host (compose NO la crea). El proxy
+# (nginx-proxy + acme-companion) ya corre en esta red.
+networks:
+  ingress-network:
+    external: true

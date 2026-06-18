@@ -1,0 +1,64 @@
+# docker/docker-compose.yml — BASE (común, única fuente de verdad de lo compartido)
+#
+# Patrón base + overrides (ADR-004). Este archivo define SOLO lo común a todos
+# los ambientes: los dos servicios de aplicación, sus env vars compartidas (por
+# nombre, con interpolación), y el alias de red interno entre ellos.
+#
+# Lo que NO va acá (vive en los overrides dev/prod):
+#   - `build:` (dev) / `image:` (prod)
+#   - `ports:` (solo dev expone al host; prod entra por el proxy)
+#   - la red de entorno (default en dev; `ingress-network` external en prod)
+#
+# Sistema stateless (ADR-003): no hay servicio de base de datos ni volúmenes.
+#
+# Comandos (combinan SIEMPRE base + override):
+#   dev :  docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
+#   prod:  docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
+#
+# Ver docker/README.md para prerequisitos y variables por ambiente.
+
+services:
+  # --- atmosphere-api (binario Go, imagen distroless non-root) ----------------
+  atmosphere-api:
+    # Contrato REAL de env del binario (cmd/atmosphere-api/config.go):
+    #   ENV, HTTP_ADDR (NO `PORT`), CORS_ALLOWED_ORIGINS.
+    # Los valores se inyectan por ambiente desde los overrides (interpolación con
+    # default vacío acá para mantener el base libre de config específica).
+    environment:
+      ENV: ${ENV:-}
+      HTTP_ADDR: ${HTTP_ADDR:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+    networks:
+      app:
+        # Alias estable por si otro contenedor necesita resolver la API por
+        # nombre dentro de la red de aplicación. La web NO lo usa server-side
+        # (el browser del usuario llama por API_BASE_URL, horneada en build-time),
+        # pero el alias deja la red lista para futuros consumidores internos.
+        aliases:
+          - atmosphere-api
+    # healthcheck: OMITIDO a propósito.
+    # La imagen `atmosphere-api` es distroless (gcr.io/distroless/static-debian12:
+    # nonroot): NO tiene shell ni curl/wget, y el binario no expone un subcomando
+    # de healthcheck. Un `healthcheck: CMD-SHELL "curl ..."` fallaría siempre.
+    # El endpoint GET /health sigue disponible para chequeo EXTERNO (proxy,
+    # verificación manual, la propia web). Agregar un healthcheck-binario al
+    # Dockerfile queda fuera del alcance de S-003.
+
+  # --- atmosphere-web (build Flutter web servido por nginx) -------------------
+  atmosphere-web:
+    # No requiere env de RUNTIME: su API_BASE_URL es un build-arg horneado en el
+    # bundle de Flutter en build-time (ver overrides y docker/README.md). Por eso
+    # el base no le declara `environment`.
+    networks:
+      app:
+        aliases:
+          - atmosphere-web
+    # healthcheck: se podría agregar uno por HTTP en nginx (la imagen alpine sí
+    # trae shell/wget), pero se omite acá para no acoplar el base a un ambiente;
+    # si se desea, declararlo en el override correspondiente.
+
+# Red de aplicación común. En dev queda como red local del proyecto; en prod el
+# override la reemplaza/extiende para conectarse a `ingress-network` (external).
+networks:
+  app:
+    driver: bridge

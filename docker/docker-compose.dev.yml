@@ -1,0 +1,42 @@
+# docker/docker-compose.dev.yml — OVERRIDE DEV (local)
+#
+# Se combina SIEMPRE con el base:
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
+#
+# Contiene SOLO las diferencias del ambiente dev respecto al base (ADR-004):
+#   - `build:` desde el path del proyecto (se buildea localmente)
+#   - `ports:` expuestos en localhost (API 8080, web 8081)
+#   - valores de env propios de dev
+# NO duplica nombres de servicio, env vars comunes ni la red (vienen del base).
+
+services:
+  # --- atmosphere-api ---------------------------------------------------------
+  atmosphere-api:
+    # Build local desde el Dockerfile del servicio. Context relativo a docker/.
+    build:
+      context: ../services/atmosphere-api
+    # Valores de env de DEV (las claves comunes ya están declaradas en el base).
+    environment:
+      ENV: development
+      HTTP_ADDR: ":8080"
+      # La web corre en el browser del host en el origen http://localhost:8081,
+      # así que ése es el origen que la API debe autorizar por CORS.
+      CORS_ALLOWED_ORIGINS: http://localhost:8081
+    # Expone el puerto interno 8080 al host (host:contenedor).
+    ports:
+      - "8080:8080"
+
+  # --- atmosphere-web ---------------------------------------------------------
+  atmosphere-web:
+    # Build local del target web de atmosphere-app. Context relativo a docker/.
+    build:
+      context: ../services/atmosphere-app
+      args:
+        # API_BASE_URL es BUILD-ARG (se hornea en el bundle de Flutter en
+        # build-time, no es env de runtime). En dev apunta al host porque el
+        # browser del usuario resuelve la llamada — debe ser una URL alcanzable
+        # desde el host, NO el nombre de servicio interno.
+        API_BASE_URL: http://localhost:8080
+    # nginx escucha en el puerto interno 80; lo exponemos en localhost:8081.
+    ports:
+      - "8081:80"
