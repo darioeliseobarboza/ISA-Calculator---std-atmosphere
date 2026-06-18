@@ -5,8 +5,11 @@
 # contenerizados). Los docker-compose son de S-003, no de esta story.
 
 # ---- builder ----------------------------------------------------------------
-# Toolchain Flutter pineada (sin :latest), alineada con el SDK local (3.44.1).
-FROM ghcr.io/cirruslabs/flutter:3.44.1 AS builder
+# Toolchain Flutter pineada (sin :latest). El SDK local es 3.44.1, pero
+# cirruslabs no publica imagen prebuilt para ese parche; 3.44.0 es la última
+# stable publicada del mismo minor y satisface el constraint de pubspec
+# (Dart >=3.12.0 <4.0.0). Se fija a 3.44.0 para que la imagen sea pulleable.
+FROM ghcr.io/cirruslabs/flutter:3.44.0 AS builder
 
 WORKDIR /app
 
