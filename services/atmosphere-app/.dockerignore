@@ -1,0 +1,20 @@
+# Artefactos de build y caché que no deben entrar al contexto de build.
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Secrets / entorno local (el .env de la imagen se genera desde API_BASE_URL).
+.env
+*.env
+!.env.example
+
+# Plataformas nativas no usadas por la imagen web.
+windows/
+linux/
+
+# Misc.
+*.iml
+.idea/
+.vscode/
+*.log
