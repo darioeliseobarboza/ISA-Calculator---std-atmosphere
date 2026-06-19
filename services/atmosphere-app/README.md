@@ -55,8 +55,10 @@ dart format .             # formatting (unformatted code does not merge)
 ### Web (containerized — `atmosphere-web`)
 
 Per ADR-004, the web target is served by an nginx container. The image is a
-multi-stage build: a pinned `ghcr.io/cirruslabs/flutter:3.44.1` builder runs
+multi-stage build: a pinned `ghcr.io/cirruslabs/flutter:3.44.0` builder runs
 `flutter build web`, then nginx serves the static output with SPA fallback.
+(The local SDK is `3.44.1`, but that exact tag is not published on GHCR, so the
+builder image pins the latest published patch of the same minor, `3.44.0`.)
 `API_BASE_URL` is injected at **build time** (never hardcoded):
 
 ```bash
