@@ -17,7 +17,8 @@ func NewServer(addr string, allowedOrigins []string, mount func(mux *http.ServeM
 
 **Usage:**
 ```go
-srv := apihttp.NewServer(cfg.HTTPAddr, cfg.CORSAllowedOrigins, apihttp.Mount)
+calcHandler := calculation.NewHandler(calculation.NewService())
+srv := apihttp.NewServer(cfg.HTTPAddr, cfg.CORSAllowedOrigins, apihttp.Mount(calcHandler))
 _ = srv.ListenAndServe()
 ```
 
@@ -38,4 +39,44 @@ func New(dir string, debug bool) (*slogx.Logger, error)
 logger, err := logging.New(cfg.LogDir, cfg.LogDebug)
 if err != nil { /* ... */ }
 defer func() { _ = logger.Close() }()
+```
+
+---
+
+## calculation.Service / NewService
+
+**Location:** `internal/calculation/service.go`
+**Description:** Application layer of the ISA calculation (story S-004). `Calculate` applies the `altitudeUnit` default (`ft`), normalizes the altitude to feet, validates the `0–36089 ft` range (authoritative; returns `*errs.Error` `outOfRange`/`invalidInput`), runs the analytical engine and assembles each absolute magnitude as `{si, imperial}` plus the relatives and the `{m, ft}` echo. Stateless and pure (ADR-003).
+
+**Signature:**
+```go
+func NewService() *Service
+func (s *Service) Calculate(ctx context.Context, in CalculationRequest) (CalculationResponse, error)
+```
+
+**Usage:**
+```go
+svc := calculation.NewService()
+res, err := svc.Calculate(ctx, calculation.CalculationRequest{
+    GeopotentialAltitude: &alt, AltitudeUnit: "ft",
+})
+```
+
+---
+
+## calculation.Handler / NewHandler
+
+**Location:** `internal/calculation/handler.go`
+**Description:** HTTP transport for the calculation module. Decodes the body (malformed/non-numeric → `invalidInput`), delegates to the `Service`, and writes the canonical response/error via `respond`. `Routes(mux)` registers `POST /v1/calculate`; mounted through `apihttp.Mount`.
+
+**Signature:**
+```go
+func NewHandler(svc *Service) *Handler
+func (h *Handler) Routes(mux *http.ServeMux)
+```
+
+**Usage:**
+```go
+h := calculation.NewHandler(calculation.NewService())
+srv := apihttp.NewServer(addr, origins, apihttp.Mount(h))
 ```
