@@ -28,3 +28,7 @@ logs/
 # Editores
 .idea/
 .vscode/
+
+# Python (scripts de wireframes)
+__pycache__/
+*.pyc
