@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/darioeliseobarboza/atmosphere-api/internal/calculation"
 	apihttp "github.com/darioeliseobarboza/atmosphere-api/internal/http"
 	"github.com/darioeliseobarboza/atmosphere-api/internal/shared/logging"
 )
@@ -40,7 +41,9 @@ func run() int {
 	}
 	defer func() { _ = logger.Close() }()
 
-	srv := apihttp.NewServer(cfg.HTTPAddr, cfg.CORSAllowedOrigins, apihttp.Mount)
+	// Build the calculation engine and its HTTP handler, then mount its routes.
+	calcHandler := calculation.NewHandler(calculation.NewService())
+	srv := apihttp.NewServer(cfg.HTTPAddr, cfg.CORSAllowedOrigins, apihttp.Mount(calcHandler))
 
 	// Signal-aware context: SIGINT/SIGTERM cancel ctx and start shutdown.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

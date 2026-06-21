@@ -8,9 +8,10 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"net/http"
 	"slices"
+
+	"github.com/darioeliseobarboza/atmosphere-api/internal/shared/respond"
 )
 
 // Middleware decorates an http.Handler with cross-cutting behavior.
@@ -69,7 +70,7 @@ func Recoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
-				writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
+				respond.Error(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -118,19 +119,17 @@ func CORS(allowedOrigins []string) Middleware {
 }
 
 // WriteJSON serializes v as JSON with the given status and the
-// application/json Content-Type.
+// application/json Content-Type. It delegates to the shared respond package so
+// the wire format is identical everywhere.
 func WriteJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+	respond.JSON(w, status, v)
 }
 
-// writeError emits the canonical error envelope { "error": { code, message } }.
-func writeError(w http.ResponseWriter, status int, code, message string) {
-	WriteJSON(w, status, map[string]any{
-		"error": map[string]any{
-			"code":    code,
-			"message": message,
-		},
-	})
+// WriteError translates a domain error into the canonical envelope at the HTTP
+// boundary: a *errs.Error (possibly wrapped) yields its public code and status;
+// any other error becomes 500 INTERNAL_ERROR with a generic message. The
+// request is accepted so callers have it in scope for correlated logging, which
+// is the boundary's responsibility (log once, here).
+func WriteError(_ *http.Request, w http.ResponseWriter, err error) {
+	respond.ErrorFrom(w, err)
 }
