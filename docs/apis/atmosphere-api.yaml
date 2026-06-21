@@ -119,11 +119,14 @@ components:
 
     CalculationResponse:
       type: object
+      # Contrato escalonado y aditivo (REQ-002 / S-004):
+      # - FG-2 (analítico) devuelve solo `input` + `results.analytical`.
+      # - FG-3 completa `results.interpolation`, `comparison` y `table`.
+      # Por eso `comparison`, `table` y `results.interpolation` son OPCIONALES:
+      # el mismo endpoint se completa en FG-3 sin breaking change.
       required:
         - input
         - results
-        - comparison
-        - table
       properties:
         input:
           type: object
@@ -135,24 +138,27 @@ components:
               enum: [m, ft]
               example: ft
             tableStep:
+              # Omitido en FG-2 (sin tabla/interpolación); presente en FG-3.
               type: number
               example: 1000
         results:
           type: object
           required:
             - analytical
-            - interpolation
           properties:
             analytical:
               $ref: '#/components/schemas/AtmosphericResult'
             interpolation:
+              # FG-3 (omitido en FG-2).
               $ref: '#/components/schemas/AtmosphericResult'
         comparison:
+          # FG-3 (omitido en FG-2). Una entrada por magnitud (11 en total).
           type: array
-          description: Una entrada por magnitud (11 en total).
+          description: Una entrada por magnitud (11 en total). Presente desde FG-3.
           items:
             $ref: '#/components/schemas/MagnitudeDifference'
         table:
+          # FG-3 (omitido en FG-2).
           $ref: '#/components/schemas/TableMeta'
 
     AtmosphericResult:
