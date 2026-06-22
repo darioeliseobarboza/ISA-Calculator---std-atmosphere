@@ -49,6 +49,9 @@
   "calcOutOfRange": "Altitud fuera de rango: el modelo cubre 0–36.089 ft (≈ 0–11.000 m). Corregí el valor.",
   "@calcOutOfRange": { "description": "Alerta de validación (400 outOfRange)" },
 
+  "calcInvalidInput": "La entrada no es válida. Revisá el valor ingresado.",
+  "@calcInvalidInput": { "description": "Alerta de validación (400 invalidInput)" },
+
   "calcConnectionError": "No se pudo conectar con la API. Tu entrada se conservó — reintentá.",
   "@calcConnectionError": { "description": "Alerta de error de sistema / sin conexión" },
 
@@ -57,6 +60,9 @@
 
   "calcFieldOutOfRange": "Fuera de rango (0–36.089 ft)",
   "@calcFieldOutOfRange": { "description": "Mensaje de error en el campo altitud ante outOfRange" },
+
+  "calcFieldInvalidInput": "Valor no válido",
+  "@calcFieldInvalidInput": { "description": "Mensaje de error en el campo altitud ante invalidInput" },
 
   "calcResultsTitle": "Resultados por magnitud (SI / imperial)",
   "@calcResultsTitle": { "description": "Título de la tabla de resultados" },

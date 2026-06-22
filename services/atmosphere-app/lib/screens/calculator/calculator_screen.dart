@@ -53,11 +53,36 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
         .calculate(geopotentialAltitude: value, altitudeUnit: _unit);
   }
 
+  /// Microcopy de error del Campo altitud ante un 400 de la API
+  /// (`validationError`), según el `error.code`: `outOfRange` →
+  /// [AppLocalizations.calcFieldOutOfRange]; `invalidInput` →
+  /// [AppLocalizations.calcFieldInvalidInput]. Devuelve `null` fuera de
+  /// `validationError` o para códigos desconocidos (basta con la alerta banner).
+  String? _fieldErrorForValidation(
+    AppLocalizations l10n,
+    CalculatorState state,
+  ) {
+    if (state.status != CalculatorStatus.validationError) return null;
+    switch (state.errorCode) {
+      case 'outOfRange':
+        return l10n.calcFieldOutOfRange;
+      case 'invalidInput':
+        return l10n.calcFieldInvalidInput;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(calculationProvider);
     final isLoading = state.status == CalculatorStatus.loading;
+
+    // El campo refleja la validación de formato client-side y, ante un 400 de la
+    // API (`validationError`), entra en estado de error con el microcopy de campo
+    // según el `error.code` (wireframe: state_override del Campo altitud).
+    final fieldError = _formatError ?? _fieldErrorForValidation(l10n, state);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.calcTitle)),
@@ -74,7 +99,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     controller: _altitudeController,
                     unit: _unit,
                     enabled: !isLoading,
-                    errorText: _formatError,
+                    errorText: fieldError,
                     onUnitChanged: (u) => setState(() => _unit = u),
                     onSubmitted: _onCalculate,
                   ),
@@ -138,7 +163,10 @@ class _ResultsArea extends StatelessWidget {
       case CalculatorStatus.loading:
         return const CalculatorLoader();
       case CalculatorStatus.validationError:
-        return const ValidationAlert();
+        return ValidationAlert(
+          errorCode: state.errorCode,
+          backendMessage: state.error,
+        );
       case CalculatorStatus.connectionError:
         return const SystemAlert();
       case CalculatorStatus.success:

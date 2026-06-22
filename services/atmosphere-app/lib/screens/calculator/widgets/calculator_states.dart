@@ -62,17 +62,44 @@ class CalculatorLoader extends StatelessWidget {
   }
 }
 
-/// Alerta de validación (400 outOfRange).
+/// Alerta de validación (400). El microcopy depende del `error.code` de la API
+/// (FG-2 contempla `outOfRange` e `invalidInput`); ante un código desconocido
+/// cae al mensaje del backend.
 class ValidationAlert extends StatelessWidget {
-  const ValidationAlert({super.key});
+  const ValidationAlert({super.key, this.errorCode, this.backendMessage});
+
+  /// Código del error de validación (`outOfRange` | `invalidInput` | …).
+  final String? errorCode;
+
+  /// Mensaje del backend, usado como fallback si el `errorCode` es desconocido.
+  final String? backendMessage;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AppAlert(
       key: const Key('validation-alert'),
-      message: l10n.calcOutOfRange,
+      message: validationAlertMessage(l10n, errorCode, backendMessage),
     );
+  }
+}
+
+/// Resuelve el microcopy de la alerta de validación según el `error.code` de la
+/// API: `outOfRange` → [AppLocalizations.calcOutOfRange]; `invalidInput` →
+/// [AppLocalizations.calcInvalidInput]; con fallback al mensaje del backend (o,
+/// en su ausencia, a `calcOutOfRange`).
+String validationAlertMessage(
+  AppLocalizations l10n,
+  String? errorCode,
+  String? backendMessage,
+) {
+  switch (errorCode) {
+    case 'outOfRange':
+      return l10n.calcOutOfRange;
+    case 'invalidInput':
+      return l10n.calcInvalidInput;
+    default:
+      return backendMessage ?? l10n.calcOutOfRange;
   }
 }
 

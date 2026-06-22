@@ -101,6 +101,21 @@ void main() {
     expect(notifier.state.result, isNull);
   });
 
+  test('TS-5b: 400 invalidInput -> validationError con errorCode', () async {
+    when(() => repository.calculate(any())).thenThrow(
+      const ValidationException('invalid input', {'code': 'invalidInput'}),
+    );
+
+    await notifier.calculate(
+      geopotentialAltitude: 0,
+      altitudeUnit: AltitudeUnit.feet,
+    );
+
+    expect(notifier.state.status, CalculatorStatus.validationError);
+    expect(notifier.state.errorCode, 'invalidInput');
+    expect(notifier.state.result, isNull);
+  });
+
   test('TS-6: NetworkException -> connectionError, input conservado', () async {
     when(() => repository.calculate(any())).thenThrow(const NetworkException());
 

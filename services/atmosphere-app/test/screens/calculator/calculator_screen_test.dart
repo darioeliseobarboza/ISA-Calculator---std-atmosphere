@@ -135,7 +135,7 @@ void main() {
     expect(find.byKey(const Key('results-table')), findsNothing);
   });
 
-  testWidgets('TS-11: estado error de validación', (tester) async {
+  testWidgets('TS-11: estado error de validación (outOfRange)', (tester) async {
     await tester.pumpApp(
       const CalculatorScreen(),
       overrides: [
@@ -143,6 +143,7 @@ void main() {
           const CalculatorState(
             status: CalculatorStatus.validationError,
             errorCode: 'outOfRange',
+            error: 'geopotentialAltitude out of range',
           ),
         ),
       ],
@@ -151,8 +152,94 @@ void main() {
 
     expect(find.byKey(const Key('validation-alert')), findsOneWidget);
     expect(find.textContaining('Altitud fuera de rango'), findsOneWidget);
+    // El Campo altitud entra en estado de error con su microcopy (state_override).
+    expect(find.text('Fuera de rango (0–36.089 ft)'), findsOneWidget);
     expect(find.byKey(const Key('results-table')), findsNothing);
   });
+
+  testWidgets(
+    'TS-11b: invalidInput muestra su microcopy y NO el de fuera de rango',
+    (tester) async {
+      await tester.pumpApp(
+        const CalculatorScreen(),
+        overrides: [
+          _fakeState(
+            const CalculatorState(
+              status: CalculatorStatus.validationError,
+              errorCode: 'invalidInput',
+              error: 'invalid input',
+            ),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('validation-alert')), findsOneWidget);
+      // Mensaje accionable de invalidInput.
+      expect(
+        find.text('La entrada no es válida. Revisá el valor ingresado.'),
+        findsOneWidget,
+      );
+      // NO debe aparecer el texto de "fuera de rango" (DEFECTO 1).
+      expect(find.textContaining('fuera de rango'), findsNothing);
+      // El Campo altitud entra en error con su propio microcopy de campo.
+      expect(find.text('Valor no válido'), findsOneWidget);
+      expect(find.byKey(const Key('results-table')), findsNothing);
+    },
+  );
+
+  testWidgets('TS-11c: errorCode desconocido cae al mensaje del backend', (
+    tester,
+  ) async {
+    await tester.pumpApp(
+      const CalculatorScreen(),
+      overrides: [
+        _fakeState(
+          const CalculatorState(
+            status: CalculatorStatus.validationError,
+            errorCode: 'somethingElse',
+            error: 'mensaje crudo del backend',
+          ),
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('validation-alert')), findsOneWidget);
+    expect(find.text('mensaje crudo del backend'), findsOneWidget);
+    // Sin override de campo para códigos desconocidos.
+    expect(find.text('Fuera de rango (0–36.089 ft)'), findsNothing);
+    expect(find.text('Valor no válido'), findsNothing);
+  });
+
+  testWidgets(
+    'TS-11d: un 400 invalidInput de la API marca alerta y campo en error',
+    (tester) async {
+      final repo = _MockRepository();
+      when(() => repo.calculate(any())).thenThrow(
+        const ValidationException('invalid input', {'code': 'invalidInput'}),
+      );
+
+      await tester.pumpApp(
+        const CalculatorScreen(),
+        overrides: [calculationRepositoryProvider.overrideWithValue(repo)],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('altitude-field')), '16404');
+      await tester.tap(find.byKey(const Key('calculate-button')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('validation-alert')), findsOneWidget);
+      expect(
+        find.text('La entrada no es válida. Revisá el valor ingresado.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('fuera de rango'), findsNothing);
+      // El campo (no solo el banner) refleja el error de validación de la API.
+      expect(find.text('Valor no válido'), findsOneWidget);
+    },
+  );
 
   testWidgets('TS-12: error de conexión muestra alerta y conserva la entrada', (
     tester,

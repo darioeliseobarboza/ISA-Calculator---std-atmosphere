@@ -60,6 +60,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Altitud fuera de rango: el modelo cubre 0–36.089 ft (≈ 0–11.000 m). Corregí el valor.';
 
   @override
+  String get calcInvalidInput =>
+      'La entrada no es válida. Revisá el valor ingresado.';
+
+  @override
   String get calcConnectionError =>
       'No se pudo conectar con la API. Tu entrada se conservó — reintentá.';
 
@@ -68,6 +72,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get calcFieldOutOfRange => 'Fuera de rango (0–36.089 ft)';
+
+  @override
+  String get calcFieldInvalidInput => 'Valor no válido';
 
   @override
   String get calcResultsTitle => 'Resultados por magnitud (SI / imperial)';

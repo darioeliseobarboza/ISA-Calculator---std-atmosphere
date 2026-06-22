@@ -190,6 +190,12 @@ abstract class AppLocalizations {
   /// **'Altitud fuera de rango: el modelo cubre 0–36.089 ft (≈ 0–11.000 m). Corregí el valor.'**
   String get calcOutOfRange;
 
+  /// Alerta de validación (400 invalidInput)
+  ///
+  /// In es, this message translates to:
+  /// **'La entrada no es válida. Revisá el valor ingresado.'**
+  String get calcInvalidInput;
+
   /// Alerta de error de sistema / sin conexión
   ///
   /// In es, this message translates to:
@@ -207,6 +213,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Fuera de rango (0–36.089 ft)'**
   String get calcFieldOutOfRange;
+
+  /// Mensaje de error en el campo altitud ante invalidInput
+  ///
+  /// In es, this message translates to:
+  /// **'Valor no válido'**
+  String get calcFieldInvalidInput;
 
   /// Título de la tabla de resultados
   ///
