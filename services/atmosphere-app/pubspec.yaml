@@ -13,6 +13,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Delegates de localización del framework (convención `i18n`).
+  flutter_localizations:
+    sdk: flutter
+
   cupertino_icons: ^1.0.8
 
   # Estado + DI (ADR-001). NO usar get_it.
@@ -37,6 +41,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Genera AppLocalizations desde los .arb (config en l10n.yaml).
+  generate: true
 
   # .env se bundlea como asset para que flutter_dotenv lo cargue en runtime.
   assets:

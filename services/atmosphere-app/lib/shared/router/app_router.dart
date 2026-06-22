@@ -1,18 +1,19 @@
-import 'package:atmosphere_app/screens/health/health_screen.dart';
+import 'package:atmosphere_app/screens/calculator/calculator_screen.dart';
 import 'package:atmosphere_app/shared/router/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Tabla de rutas única (convención `navigation`). Sin guards de sesión: la app
-/// no tiene auth (ADR-003).
+/// no tiene auth (ADR-003). La ruta raíz monta la `CalculatorScreen` (FG-2,
+/// reemplaza la `HealthScreen` provisional de FG-1).
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: Routes.root,
     routes: <RouteBase>[
       GoRoute(
         path: Routes.root,
-        builder: (context, state) => const HealthScreen(),
+        builder: (context, state) => const CalculatorScreen(),
       ),
     ],
     errorBuilder: (context, state) => const _NotFoundScreen(),

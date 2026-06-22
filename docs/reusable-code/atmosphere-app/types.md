@@ -2,8 +2,8 @@
 
 ## Overview
 
-Cross-cutting domain types: the sealed error hierarchy, the typed environment
-config, and the router contract. All are domain-agnostic and reused in FG-2.
+Cross-cutting domain types: the sealed error hierarchy, the `calculator` DTOs,
+the typed environment config, and the router contract.
 
 ## AppException
 
@@ -32,10 +32,56 @@ class UnexpectedException  extends AppException { ... } // otros >= 400
 **Usage:**
 ```dart
 try {
-  await repository.check();
-} on AppException catch (e) {
-  state = state.copyWith(status: HealthStatus.error, error: e.message);
+  final response = await repository.calculate(request);
+} on ValidationException catch (e) {
+  state = state.copyWith(status: CalculatorStatus.validationError, error: e.message);
+} on NetworkException catch (e) {
+  state = state.copyWith(status: CalculatorStatus.connectionError, error: e.message);
 }
+```
+
+---
+
+## Calculation models
+
+**Location:** `lib/shared/models/calculation_request.dart`,
+`lib/shared/models/calculation_response.dart`,
+`lib/shared/models/altitude_unit.dart`
+**Description:** Hand-written DTOs of the `POST /v1/calculate` contract (FG-2
+slice — `models-serialization` manual variant, consistent with the rest of the
+app). `CalculationRequest.toJson()` emits `{geopotentialAltitude, altitudeUnit}`
+and never `tableStep`. `CalculationResponse.fromJson(...)` parses `input`
+(`AltitudeValue` `{m,ft}` + `AltitudeUnit`) and `results.analytical`
+(`AtmosphericResult`: 6 absolute `MagnitudeValue` `{si,imperial}` + 5 relative
+`num`); `interpolation`/`comparison`/`table` are optional and stay `null` in
+FG-2 (additive contract). `AltitudeUnit` (de)serializes by wire value `m`/`ft`
+(default `ft`), not enum index.
+
+**Interface:**
+```dart
+enum AltitudeUnit { meters('m'), feet('ft'); final String wire; static AltitudeUnit fromWire(String); }
+
+class CalculationRequest {
+  const CalculationRequest({required num geopotentialAltitude, AltitudeUnit altitudeUnit = AltitudeUnit.feet});
+  Map<String, dynamic> toJson(); // { geopotentialAltitude, altitudeUnit }
+}
+
+class MagnitudeValue { final num si, imperial; }      // absolute magnitude
+class AltitudeValue  { final num meters, feet; }       // {m, ft}
+class AtmosphericResult { final String method; final MagnitudeValue temperature, pressure, ...; final num theta, delta, sigma, speedOfSoundRatio, viscosityRatio; }
+class CalculationResponse {
+  final CalculationInput input;             // geopotentialAltitude {m,ft} + altitudeUnit
+  final AtmosphericResult analytical;
+  final AtmosphericResult? interpolation;   // null in FG-2
+  factory CalculationResponse.fromJson(Map<String, dynamic> json);
+}
+```
+
+**Usage:**
+```dart
+final req = const CalculationRequest(geopotentialAltitude: 16404, altitudeUnit: AltitudeUnit.feet);
+final res = CalculationResponse.fromJson(json);
+res.analytical.temperature.si; // 255.65
 ```
 
 ---
@@ -73,8 +119,8 @@ runApp(ProviderScope(overrides: [envProvider.overrideWithValue(env)], child: con
 **Location:** `lib/shared/router/routes.dart`, `lib/shared/router/app_router.dart`
 **Description:** `Routes` holds path constants (no literal route strings in
 widgets); `routerProvider` exposes the single `GoRouter` route table with an
-`errorBuilder` (404). No session guards (no auth, ADR-003). FG-2 adds the
-calculator route here.
+`errorBuilder` (404). No session guards (no auth, ADR-003). The root route (`/`)
+mounts `CalculatorScreen` (S-005 — replaced the provisional health screen).
 
 **Interface:**
 ```dart

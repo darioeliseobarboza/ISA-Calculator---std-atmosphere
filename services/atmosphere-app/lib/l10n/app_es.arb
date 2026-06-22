@@ -1,0 +1,109 @@
+{
+  "@@locale": "es",
+
+  "calcTitle": "Calculadora ISA · Atmósfera Estándar",
+  "@calcTitle": { "description": "Título / header de la pantalla de cálculo" },
+
+  "calcAltitudeLabel": "Altitud geopotencial",
+  "@calcAltitudeLabel": { "description": "Label del campo de altitud" },
+
+  "calcAltitudeHelper": "numérico; se normaliza a ft y se valida 0–36.089 ft",
+  "@calcAltitudeHelper": { "description": "Helper text del campo de altitud" },
+
+  "calcUnitLabel": "Unidad",
+  "@calcUnitLabel": { "description": "Label del selector de unidad" },
+
+  "calcUnitHelper": "opciones m / ft · default ft",
+  "@calcUnitHelper": { "description": "Helper del selector de unidad" },
+
+  "calcUnitMeters": "m",
+  "@calcUnitMeters": { "description": "Opción metros del selector de unidad" },
+
+  "calcUnitFeet": "ft",
+  "@calcUnitFeet": { "description": "Opción pies del selector de unidad" },
+
+  "calcTableStepDisabled": "Paso de tabla — disponible en FG-3",
+  "@calcTableStepDisabled": { "description": "Label del control de paso de tabla (deshabilitado en FG-2)" },
+
+  "calcTableStepA11y": "Ajustar paso de tabla",
+  "@calcTableStepA11y": { "description": "aria-label del icono del control de paso de tabla" },
+
+  "calcCalculate": "Calcular",
+  "@calcCalculate": { "description": "Label del botón calcular" },
+
+  "calcCalculating": "Calculando…",
+  "@calcCalculating": { "description": "Label del botón calcular mientras carga" },
+
+  "calcFormulas": "Fórmulas de conversión",
+  "@calcFormulas": { "description": "Label del botón de fórmulas (drawer de S-006)" },
+
+  "calcFormulasA11y": "Abrir fórmulas de conversión",
+  "@calcFormulasA11y": { "description": "aria-label del icono del botón de fórmulas" },
+
+  "calcLoading": "Calculando parámetros…",
+  "@calcLoading": { "description": "Mensaje del loader de resultados" },
+
+  "calcEmptyState": "Ingresá una altitud y calculá para ver los parámetros ISA.",
+  "@calcEmptyState": { "description": "Empty-state inicial sin datos" },
+
+  "calcOutOfRange": "Altitud fuera de rango: el modelo cubre 0–36.089 ft (≈ 0–11.000 m). Corregí el valor.",
+  "@calcOutOfRange": { "description": "Alerta de validación (400 outOfRange)" },
+
+  "calcConnectionError": "No se pudo conectar con la API. Tu entrada se conservó — reintentá.",
+  "@calcConnectionError": { "description": "Alerta de error de sistema / sin conexión" },
+
+  "calcNotANumber": "Ingresá un número",
+  "@calcNotANumber": { "description": "Error de validación de formato numérico client-side" },
+
+  "calcFieldOutOfRange": "Fuera de rango (0–36.089 ft)",
+  "@calcFieldOutOfRange": { "description": "Mensaje de error en el campo altitud ante outOfRange" },
+
+  "calcResultsTitle": "Resultados por magnitud (SI / imperial)",
+  "@calcResultsTitle": { "description": "Título de la tabla de resultados" },
+
+  "calcResultsAnnotation": "FG-2: solo Analítico. FG-3 agrega columnas Interpolación · Δ · error %",
+  "@calcResultsAnnotation": { "description": "Anotación del recorte FG-2 en la tabla" },
+
+  "calcMagTemperature": "Temperatura (T)",
+  "@calcMagTemperature": { "description": "Etiqueta de la magnitud temperatura" },
+  "calcMagPressure": "Presión (P)",
+  "@calcMagPressure": { "description": "Etiqueta de la magnitud presión" },
+  "calcMagDensity": "Densidad (ρ)",
+  "@calcMagDensity": { "description": "Etiqueta de la magnitud densidad" },
+  "calcMagDynamicViscosity": "Viscosidad dinámica (μ)",
+  "@calcMagDynamicViscosity": { "description": "Etiqueta de la viscosidad dinámica" },
+  "calcMagKinematicViscosity": "Viscosidad cinemática (ν)",
+  "@calcMagKinematicViscosity": { "description": "Etiqueta de la viscosidad cinemática" },
+  "calcMagSpeedOfSound": "Velocidad del sonido (a)",
+  "@calcMagSpeedOfSound": { "description": "Etiqueta de la velocidad del sonido" },
+
+  "calcRelativesTitle": "Relativos (adimensionales)",
+  "@calcRelativesTitle": { "description": "Título de la sección de relativos" },
+
+  "calcRelatives": "θ={theta} · δ={delta} · σ={sigma} · a/a₀={aRatio} · μ/μ₀={muRatio}",
+  "@calcRelatives": {
+    "description": "Línea de relativos adimensionales formateados",
+    "placeholders": {
+      "theta": { "type": "String" },
+      "delta": { "type": "String" },
+      "sigma": { "type": "String" },
+      "aRatio": { "type": "String" },
+      "muRatio": { "type": "String" }
+    }
+  },
+
+  "calcAltitudeEcho": "Altitud: {meters} m · {feet} ft",
+  "@calcAltitudeEcho": {
+    "description": "Badge de la altitud de entrada eco-devuelta en m y ft",
+    "placeholders": {
+      "meters": { "type": "String" },
+      "feet": { "type": "String" }
+    }
+  },
+
+  "calcFooter": "El cálculo lo hace la API · valores en SI e imperial · 5 cifras significativas",
+  "@calcFooter": { "description": "Nota del footer sobre cálculo/precisión" },
+
+  "calcResultsTableA11y": "Tabla de resultados por magnitud",
+  "@calcResultsTableA11y": { "description": "aria-label de la tabla de resultados" }
+}

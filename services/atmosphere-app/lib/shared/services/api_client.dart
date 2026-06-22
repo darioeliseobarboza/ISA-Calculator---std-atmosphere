@@ -50,6 +50,41 @@ class ApiClient {
     }
     return decoded;
   }
+
+  /// `POST {baseUrl}{path}` con `Content-Type: application/json`, body
+  /// `jsonEncode(body)` y timeout explícito. Espeja [getJson]: decodifica el
+  /// body de forma segura y mapea `status >= 400` y errores de transporte
+  /// (sin red / timeout) a [AppException].
+  Future<Map<String, dynamic>> postJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final http.Response res;
+    try {
+      res = await _inner
+          .post(
+            Uri.parse('$baseUrl$path'),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+    } on SocketException {
+      throw const NetworkException();
+    } on TimeoutException {
+      throw const NetworkException();
+    } on http.ClientException {
+      throw const NetworkException();
+    }
+
+    final decoded = res.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(res.body) as Map<String, dynamic>;
+
+    if (res.statusCode >= 400) {
+      throw AppException.fromResponse(res.statusCode, decoded);
+    }
+    return decoded;
+  }
 }
 
 /// Provee el [ApiClient] configurado con la base URL del entorno y un timeout
