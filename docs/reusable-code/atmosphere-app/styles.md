@@ -9,22 +9,26 @@ them into a single `ThemeData`.
 ## AppColors
 
 **Location:** `lib/shared/theme/app_colors.dart`
-**Description:** Semantic color palette as `static const`. Includes brand/surface
-colors and the semantic `success` / `error` used to distinguish the health
-screen's alive vs error states.
+**Description:** Semantic color palette as `static const`. Brand/surface colors,
+secondary text + border tokens, and the semantic `success`/`warning`/`info`/
+`error` plus `errorContainer` (alert background). The variant/border/semantic
+tokens were added in S-005 for the calculator UI (per `theming` — no inline
+`Color(0x...)` in feature widgets).
 
 **Interface:**
 ```dart
 abstract final class AppColors {
   static const Color primary, background, surface, onSurface;
-  static const Color success; // verde - estado vivo
-  static const Color error;   // rojo  - estado error
+  static const Color onSurfaceVariant; // texto secundario
+  static const Color border;           // bordes neutros
+  static const Color success, warning, info, error;
+  static const Color errorContainer;   // fondo de alertas de error
 }
 ```
 
 **Usage:**
 ```dart
-Icon(Icons.check_circle, color: AppColors.success);
+Text(label, style: AppTypography.body.copyWith(color: AppColors.onSurfaceVariant));
 ```
 
 ---

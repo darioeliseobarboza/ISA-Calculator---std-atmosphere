@@ -9,9 +9,11 @@ Test helpers shared across the suite (convention `testing`). `test/` mirrors
 
 **Location:** `test/helpers/pump_app.dart`
 **Description:** `WidgetTester` extension that mounts a widget inside a
-`ProviderScope` + `MaterialApp` using the real `AppTheme.dark()`, and accepts a
-list of provider `overrides`. The base for every widget test (override providers
-with fakes/mocks, then `pumpApp(widget, overrides: [...])`).
+`ProviderScope` + `MaterialApp` using the real `AppTheme.dark()`, the `es` locale
+and the `AppLocalizations` + global Material/Widgets/Cupertino delegates (so
+widgets that read `AppLocalizations.of(context)` resolve), and accepts a list of
+provider `overrides`. The base for every widget test (override providers with
+fakes/mocks, then `pumpApp(widget, overrides: [...])`).
 
 **Signature:**
 ```dart
@@ -23,7 +25,7 @@ extension PumpApp on WidgetTester {
 **Usage:**
 ```dart
 await tester.pumpApp(
-  const HealthScreen(),
-  overrides: [healthProvider.overrideWith((ref) => FakeHealthNotifier(HealthStatus.alive))],
+  const CalculatorScreen(),
+  overrides: [calculationProvider.overrideWith((ref) => FakeCalculationNotifier(state))],
 );
 ```
