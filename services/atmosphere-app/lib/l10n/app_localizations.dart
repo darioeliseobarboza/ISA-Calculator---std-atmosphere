@@ -172,6 +172,84 @@ abstract class AppLocalizations {
   /// **'Abrir fórmulas de conversión'**
   String get calcFormulasA11y;
 
+  /// Header del drawer de fórmulas de conversión (O-01)
+  ///
+  /// In es, this message translates to:
+  /// **'Fórmulas de conversión'**
+  String get formulasTitle;
+
+  /// Intro (caption) del drawer: aclara que es referencia estática
+  ///
+  /// In es, this message translates to:
+  /// **'Referencia estática · SI ↔ imperial y m ↔ ft. No calcula.'**
+  String get formulasIntro;
+
+  /// Label de la lista de fórmulas por magnitud
+  ///
+  /// In es, this message translates to:
+  /// **'Por magnitud'**
+  String get formulasListLabel;
+
+  /// Factor de conversión de altitud (m ↔ ft)
+  ///
+  /// In es, this message translates to:
+  /// **'Altitud — 1 ft = 0,3048 m'**
+  String get formulasItemAltitude;
+
+  /// Factor de conversión de temperatura (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Temperatura — °R = K × 1,8'**
+  String get formulasItemTemperature;
+
+  /// Factor de conversión de presión (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Presión — 1 lbf/ft² (psf) = 47,8803 Pa'**
+  String get formulasItemPressure;
+
+  /// Factor de conversión de densidad (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Densidad — 1 slug/ft³ = 515,379 kg/m³'**
+  String get formulasItemDensity;
+
+  /// Factor de conversión de viscosidad dinámica (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Viscosidad dinámica — 1 slug/(ft·s) = 47,8803 Pa·s'**
+  String get formulasItemDynamicViscosity;
+
+  /// Factor de conversión de viscosidad cinemática (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Viscosidad cinemática — 1 ft²/s = 0,092903 m²/s'**
+  String get formulasItemKinematicViscosity;
+
+  /// Factor de conversión de velocidad del sonido (SI ↔ imperial)
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad del sonido — 1 ft/s = 0,3048 m/s'**
+  String get formulasItemSpeedOfSound;
+
+  /// Nota (caption): los relativos son adimensionales, sin conversión
+  ///
+  /// In es, this message translates to:
+  /// **'Relativos (θ, δ, σ, a/a₀, μ/μ₀): adimensionales, sin conversión.'**
+  String get formulasRelativesNote;
+
+  /// Label del botón que cierra el drawer de fórmulas
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar'**
+  String get formulasClose;
+
+  /// aria-label / tooltip del icono del botón Cerrar del drawer
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar fórmulas'**
+  String get formulasCloseA11y;
+
   /// Mensaje del loader de resultados
   ///
   /// In es, this message translates to:

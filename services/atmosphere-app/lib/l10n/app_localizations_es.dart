@@ -49,6 +49,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get calcFormulasA11y => 'Abrir fórmulas de conversión';
 
   @override
+  String get formulasTitle => 'Fórmulas de conversión';
+
+  @override
+  String get formulasIntro =>
+      'Referencia estática · SI ↔ imperial y m ↔ ft. No calcula.';
+
+  @override
+  String get formulasListLabel => 'Por magnitud';
+
+  @override
+  String get formulasItemAltitude => 'Altitud — 1 ft = 0,3048 m';
+
+  @override
+  String get formulasItemTemperature => 'Temperatura — °R = K × 1,8';
+
+  @override
+  String get formulasItemPressure => 'Presión — 1 lbf/ft² (psf) = 47,8803 Pa';
+
+  @override
+  String get formulasItemDensity => 'Densidad — 1 slug/ft³ = 515,379 kg/m³';
+
+  @override
+  String get formulasItemDynamicViscosity =>
+      'Viscosidad dinámica — 1 slug/(ft·s) = 47,8803 Pa·s';
+
+  @override
+  String get formulasItemKinematicViscosity =>
+      'Viscosidad cinemática — 1 ft²/s = 0,092903 m²/s';
+
+  @override
+  String get formulasItemSpeedOfSound =>
+      'Velocidad del sonido — 1 ft/s = 0,3048 m/s';
+
+  @override
+  String get formulasRelativesNote =>
+      'Relativos (θ, δ, σ, a/a₀, μ/μ₀): adimensionales, sin conversión.';
+
+  @override
+  String get formulasClose => 'Cerrar';
+
+  @override
+  String get formulasCloseA11y => 'Cerrar fórmulas';
+
+  @override
   String get calcLoading => 'Calculando parámetros…';
 
   @override
