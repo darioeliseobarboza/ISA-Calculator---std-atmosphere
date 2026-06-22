@@ -4,6 +4,7 @@ import 'package:atmosphere_app/screens/calculator/widgets/altitude_input.dart';
 import 'package:atmosphere_app/screens/calculator/widgets/calculator_states.dart';
 import 'package:atmosphere_app/screens/calculator/widgets/relative_values.dart';
 import 'package:atmosphere_app/screens/calculator/widgets/results_table.dart';
+import 'package:atmosphere_app/screens/formulas/formulas_drawer.dart';
 import 'package:atmosphere_app/shared/models/altitude_unit.dart';
 import 'package:atmosphere_app/shared/providers/calculation_provider.dart';
 import 'package:atmosphere_app/shared/state/calculation_notifier.dart';
@@ -51,6 +52,40 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     ref
         .read(calculationProvider.notifier)
         .calculate(geopotentialAltitude: value, altitudeUnit: _unit);
+  }
+
+  /// Abre el overlay O-01 (fórmulas de conversión) como panel lateral derecho.
+  ///
+  /// No es una ruta de `go_router` (convención `navigation`): es una capa de
+  /// diálogo que monta el [FormulasDrawer] al abrir y lo desmonta al cerrar,
+  /// dejando `CalculatorScreen` intacta detrás (CA-3). El barrier (scrim) y la
+  /// tecla `Esc` cierran el panel; el botón "Cerrar" hace `Navigator.pop`.
+  void _openFormulas(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: l10n.formulasTitle,
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (dialogContext, _, _) => Align(
+        alignment: Alignment.centerRight,
+        child: FractionallySizedBox(
+          widthFactor: 0.42,
+          heightFactor: 1,
+          child: FormulasDrawer(
+            onClose: () => Navigator.of(dialogContext).pop(),
+          ),
+        ),
+      ),
+      transitionBuilder: (_, animation, _, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+        child: child,
+      ),
+    );
   }
 
   /// Microcopy de error del Campo altitud ante un 400 de la API
@@ -119,8 +154,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       const SizedBox(width: AppSpacing.md),
                       TextButton.icon(
                         key: const Key('formulas-button'),
-                        // El drawer de fórmulas (O-01) es alcance de S-006.
-                        onPressed: () {},
+                        onPressed: () => _openFormulas(context),
                         icon: Semantics(
                           label: l10n.calcFormulasA11y,
                           child: const Icon(Icons.description_outlined),
